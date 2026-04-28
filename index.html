@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Text-to-Speech JSON Lesson</title>
+
+<style>
+  body {
+    font-family: Arial;
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 10px;
+  }
+
+  #counter {
+    font-size: 18px;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+
+  #text {
+    font-size: 20px;
+    margin: 10px 0;
+  }
+
+  #arabic {
+    color: darkblue;
+    font-size: 20px;
+    direction: rtl;
+    text-align: center;
+    margin: 10px auto;
+    max-width: 90%;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+  }
+
+  button {
+    flex: 1 1 30%;
+    min-width: 100px;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .options {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+</style>
+</head>
+
+<body>
+
+<h2>Listen and Learn</h2>
+
+<!-- COUNTER -->
+<p id="counter"></p>
+
+<!-- ENGLISH -->
+<details>
+  <summary>English Sentence</summary>
+  <p id="text">Loading...</p>
+</details>
+
+<!-- ARABIC -->
+<details>
+  <summary>Arabic Translation</summary>
+  <p id="arabic">...</p>
+</details>
+
+<!-- CONTROLS -->
+<div class="controls">
+
+  <button id="prevBtn" onclick="prevSentence()">⬅ Prev</button>
+  <button onclick="speakCurrent()">🔊 Speak</button>
+  <button id="nextBtn" onclick="nextSentence()">Next ➡</button>
+
+</div>
+
+<!-- OPTIONS -->
+<div class="options">
+  <label>
+    <input type="checkbox" id="autoSpeak" checked>
+    Speak when changing sentence
+  </label>
+</div>
+
+<script>
+
+// ===== TEXT TO SPEECH =====
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(msg);
+}
+
+let data = [];
+let index = 0;
+
+// ===== CHECKBOX =====
+function shouldSpeak() {
+  return document.getElementById("autoSpeak").checked;
+}
+
+// ===== UPDATE UI =====
+function updateUI() {
+  document.getElementById("counter").innerText =
+    "Sentence " + (index + 1) + " of " + data.length;
+
+  document.getElementById("text").innerText = data[index].en;
+  document.getElementById("arabic").innerText = data[index].ar;
+
+  document.getElementById("prevBtn").disabled = (index === 0);
+  document.getElementById("nextBtn").disabled = (index === data.length - 1);
+}
+
+// ===== SPEAK CURRENT =====
+function speakCurrent() {
+  speak(data[index].en);
+}
+
+// ===== NEXT =====
+function nextSentence() {
+  if (index < data.length - 1) {
+    index++;
+    updateUI();
+    if (shouldSpeak()) speakCurrent();
+  }
+}
+
+// ===== PREVIOUS =====
+function prevSentence() {
+  if (index > 0) {
+    index--;
+    updateUI();
+    if (shouldSpeak()) speakCurrent();
+  }
+}
+
+// ===== LOAD JSON (NO AUTO SPEAK ON LOAD) =====
+fetch("data.json")
+  .then(response => response.json())
+  .then(json => {
+    data = json;
+    index = 0;
+    updateUI(); // only display, no speech
+  })
+  .catch(error => {
+    console.error("Error loading JSON:", error);
+    document.getElementById("text").innerText = "Failed to load data.";
+  });
+
+</script>
+
+</body>
+</html>
